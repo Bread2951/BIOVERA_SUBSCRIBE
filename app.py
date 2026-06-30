@@ -15,7 +15,7 @@ app.register_blueprint(customer_bp)
 
 @app.route("/")
 def home():
-    return redirect("/admin")
+    return redirect("/subscribe")
 
 
 if __name__ == "__main__":
