@@ -435,6 +435,7 @@ def customer_list():
     cur = conn.cursor()
 
     search = request.args.get("search", "")
+    status = request.args.get("status", "")
 
     base_query = """
         SELECT
@@ -451,18 +452,29 @@ def customer_list():
         ON customers.id = subscriptions.customer_id
     """
 
-    if search:
-        cur.execute(base_query + """
-            WHERE customers.name LIKE ?
-               OR customers.phone LIKE ?
-               OR customers.address LIKE ?
-               OR subscriptions.plan LIKE ?
-            ORDER BY customers.id DESC
-        """, (f"%{search}%", f"%{search}%", f"%{search}%", f"%{search}%"))
-    else:
-        cur.execute(base_query + """
-            ORDER BY customers.id DESC
-        """)
+    conditions = []
+params = []
+
+if search:
+    conditions.append("""
+        (customers.name LIKE ?
+         OR customers.phone LIKE ?
+         OR customers.address LIKE ?
+         OR subscriptions.plan LIKE ?)
+    """)
+    params.extend([f"%{search}%", f"%{search}%", f"%{search}%", f"%{search}%"])
+
+if status:
+    conditions.append("subscriptions.status = ?")
+    params.append(status)
+
+where_sql = ""
+if conditions:
+    where_sql = " WHERE " + " AND ".join(conditions)
+
+cur.execute(base_query + where_sql + """
+    ORDER BY customers.id DESC
+""", params)
 
     customers = cur.fetchall()
     conn.close()
@@ -471,4 +483,5 @@ def customer_list():
         "admin/customers.html",
         customers=customers,
         search=search
+        status=status
     )

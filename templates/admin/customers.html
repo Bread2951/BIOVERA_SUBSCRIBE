@@ -126,6 +126,15 @@ body { background: var(--bg-color); }
                 </div>
             </form>
 
+            <div class="d-flex flex-wrap gap-2 mb-3">
+    <a href="/admin/customers" class="btn btn-sm {% if not status %}btn-main{% else %}btn-outline-secondary{% endif %}">전체</a>
+    <a href="/admin/customers?status=입금대기" class="btn btn-sm {% if status == '입금대기' %}btn-main{% else %}btn-outline-secondary{% endif %}">입금대기</a>
+    <a href="/admin/customers?status=결제완료" class="btn btn-sm {% if status == '결제완료' %}btn-main{% else %}btn-outline-secondary{% endif %}">결제완료</a>
+    <a href="/admin/customers?status=배송준비" class="btn btn-sm {% if status == '배송준비' %}btn-main{% else %}btn-outline-secondary{% endif %}">배송준비</a>
+    <a href="/admin/customers?status=배송대기" class="btn btn-sm {% if status == '배송대기' %}btn-main{% else %}btn-outline-secondary{% endif %}">배송대기</a>
+    <a href="/admin/customers?status=구독해지" class="btn btn-sm {% if status == '구독해지' %}btn-main{% else %}btn-outline-secondary{% endif %}">구독해지</a>
+</div>
+
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead style="background:#e6f3f7;">
