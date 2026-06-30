@@ -1,8 +1,24 @@
 from flask import Blueprint, render_template, request, redirect, session
-from datetime import date
+from datetime import date, datetime
+import calendar
 from database import get_db
 
 admin_bp = Blueprint("admin", __name__)
+def add_one_month(date_text):
+    current_date = datetime.strptime(date_text, "%Y-%m-%d").date()
+
+    year = current_date.year
+    month = current_date.month + 1
+
+    if month > 12:
+        month = 1
+        year += 1
+
+    last_day = calendar.monthrange(year, month)[1]
+    day = min(current_date.day, last_day)
+
+    next_date = date(year, month, day)
+    return next_date.strftime("%Y-%m-%d")
 
 
 @admin_bp.route("/login", methods=["GET", "POST"])
@@ -293,6 +309,7 @@ def shipment_complete(subscription_id):
         remaining_count = subscription[2] or 0
 
         new_remaining_count = max(remaining_count - 1, 0)
+        next_shipping_date = add_one_month(shipping_date)
 
         cur.execute("""
             INSERT INTO shipments
@@ -308,12 +325,12 @@ def shipment_complete(subscription_id):
         ))
 
         cur.execute("""
-            UPDATE subscriptions
-            SET status = '배송대기',
-                remaining_count = ?,
-                next_shipping_date = DATE(next_shipping_date, '+30 days')
-            WHERE id = ?
-        """, (new_remaining_count, subscription_id))
+    UPDATE subscriptions
+    SET status = '배송대기',
+        remaining_count = ?,
+        next_shipping_date = ?
+    WHERE id = ?
+""", (new_remaining_count, next_shipping_date, subscription_id))
 
     conn.commit()
     conn.close()
