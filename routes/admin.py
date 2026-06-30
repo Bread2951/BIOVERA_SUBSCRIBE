@@ -453,28 +453,28 @@ def customer_list():
     """
 
     conditions = []
-params = []
+    params = []
 
-if search:
-    conditions.append("""
-        (customers.name LIKE ?
-         OR customers.phone LIKE ?
-         OR customers.address LIKE ?
-         OR subscriptions.plan LIKE ?)
-    """)
-    params.extend([f"%{search}%", f"%{search}%", f"%{search}%", f"%{search}%"])
+    if search:
+        conditions.append("""
+            (customers.name LIKE ?
+             OR customers.phone LIKE ?
+             OR customers.address LIKE ?
+             OR subscriptions.plan LIKE ?)
+        """)
+        params.extend([f"%{search}%", f"%{search}%", f"%{search}%", f"%{search}%"])
 
-if status:
-    conditions.append("subscriptions.status = ?")
-    params.append(status)
+    if status:
+        conditions.append("subscriptions.status = ?")
+        params.append(status)
 
-where_sql = ""
-if conditions:
-    where_sql = " WHERE " + " AND ".join(conditions)
+    where_sql = ""
+    if conditions:
+        where_sql = " WHERE " + " AND ".join(conditions)
 
-cur.execute(base_query + where_sql + """
-    ORDER BY customers.id DESC
-""", params)
+    cur.execute(base_query + where_sql + """
+        ORDER BY customers.id DESC
+    """, params)
 
     customers = cur.fetchall()
     conn.close()
@@ -482,7 +482,7 @@ cur.execute(base_query + where_sql + """
     return render_template(
         "admin/customers.html",
         customers=customers,
-        search=search
+        search=search,
         status=status
     )
 
