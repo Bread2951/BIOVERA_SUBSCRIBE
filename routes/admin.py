@@ -1,4 +1,6 @@
-from flask import Blueprint, render_template, request, redirect, session
+from flask import Blueprint, render_template, request, redirect, session, Response
+import csv
+import io
 from datetime import date, datetime
 import calendar
 from database import get_db
@@ -362,3 +364,44 @@ def payment_confirm(subscription_id):
     conn.close()
 
     return redirect("/admin/shipments")
+
+@admin_bp.route("/admin/shipments/export")
+def export_shipments():
+    if not session.get("logged_in"):
+        return redirect("/login")
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT
+            customers.name,
+            customers.phone,
+            customers.address,
+            subscriptions.plan,
+            subscriptions.next_shipping_date,
+            subscriptions.memo,
+            subscriptions.status
+        FROM customers
+        LEFT JOIN subscriptions
+        ON customers.id = subscriptions.customer_id
+        WHERE subscriptions.status IN ('결제완료', '배송준비')
+        ORDER BY subscriptions.next_shipping_date ASC
+    """)
+
+    rows = cur.fetchall()
+    conn.close()
+
+    output = io.StringIO()
+    output.write('\ufeff')
+    writer = csv.writer(output)
+
+    writer.writerow(["이름", "연락처", "주소", "상품", "다음배송일", "요청사항", "상태"])
+
+    for row in rows:
+        writer.writerow(row)
+
+    response = Response(output.getvalue(), mimetype="text/csv")
+    response.headers["Content-Disposition"] = "attachment; filename=shipments.csv"
+
+    return response
