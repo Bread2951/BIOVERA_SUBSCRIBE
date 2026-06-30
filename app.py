@@ -6,10 +6,10 @@ from routes.customer import customer_bp
 app = Flask(__name__)
 app.secret_key = "biovvera_secret_key"
 
-# 관리자
-app.register_blueprint(admin_bp)
+# Render에서도 DB 테이블 생성되게 실행
+init_db()
 
-# 고객
+app.register_blueprint(admin_bp)
 app.register_blueprint(customer_bp)
 
 
@@ -19,5 +19,4 @@ def home():
 
 
 if __name__ == "__main__":
-    init_db()
     app.run(debug=True)
