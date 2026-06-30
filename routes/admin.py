@@ -405,3 +405,50 @@ def export_shipments():
     response.headers["Content-Disposition"] = "attachment; filename=shipments.csv"
 
     return response
+
+@admin_bp.route("/admin/customers")
+def customer_list():
+    if not session.get("logged_in"):
+        return redirect("/login")
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    search = request.args.get("search", "")
+
+    base_query = """
+        SELECT
+            customers.id,
+            customers.name,
+            customers.phone,
+            customers.address,
+            subscriptions.plan,
+            subscriptions.status,
+            subscriptions.remaining_count,
+            subscriptions.next_shipping_date
+        FROM customers
+        LEFT JOIN subscriptions
+        ON customers.id = subscriptions.customer_id
+    """
+
+    if search:
+        cur.execute(base_query + """
+            WHERE customers.name LIKE ?
+               OR customers.phone LIKE ?
+               OR customers.address LIKE ?
+               OR subscriptions.plan LIKE ?
+            ORDER BY customers.id DESC
+        """, (f"%{search}%", f"%{search}%", f"%{search}%", f"%{search}%"))
+    else:
+        cur.execute(base_query + """
+            ORDER BY customers.id DESC
+        """)
+
+    customers = cur.fetchall()
+    conn.close()
+
+    return render_template(
+        "admin/customers.html",
+        customers=customers,
+        search=search
+    )
