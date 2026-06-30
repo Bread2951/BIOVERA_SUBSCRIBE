@@ -52,58 +52,78 @@ def admin_dashboard():
     conn = get_db()
     cur = conn.cursor()
 
-    search = request.args.get("search", "")
+    today = date.today()
+    today_text = today.strftime("%Y-%m-%d")
+    tomorrow_text = date.fromordinal(today.toordinal() + 1).strftime("%Y-%m-%d")
 
-    base_query = """
-        SELECT
-            customers.id,
-            customers.name,
-            customers.phone,
-            customers.address,
-            subscriptions.plan,
-            subscriptions.start_date,
-            subscriptions.memo,
-            subscriptions.status
+    month_start = today.replace(day=1).strftime("%Y-%m-%d")
+    month_end = today.replace(day=calendar.monthrange(today.year, today.month)[1]).strftime("%Y-%m-%d")
+
+    cur.execute("""
+        SELECT COUNT(*)
+        FROM subscriptions
+        WHERE next_shipping_date BETWEEN ? AND ?
+    """, (month_start, month_end))
+    monthly_shipping_count = cur.fetchone()[0]
+
+    cur.execute("""
+        SELECT COUNT(*)
+        FROM subscriptions
+        WHERE next_shipping_date = ?
+          AND status IN ('결제완료', '배송준비')
+    """, (today_text,))
+    today_shipping_count = cur.fetchone()[0]
+
+    cur.execute("""
+        SELECT COUNT(*)
+        FROM subscriptions
+        WHERE next_shipping_date = ?
+          AND status IN ('결제완료', '배송준비')
+    """, (tomorrow_text,))
+    tomorrow_shipping_count = cur.fetchone()[0]
+
+    cur.execute("""
+        SELECT COUNT(*)
+        FROM subscriptions
+        WHERE status = '입금대기'
+    """)
+    deposit_waiting_count = cur.fetchone()[0]
+
+    cur.execute("""
+        SELECT COUNT(*)
+        FROM subscriptions
+        WHERE status = '배송준비'
+    """)
+    shipping_ready_count = cur.fetchone()[0]
+
+    cur.execute("""
+        SELECT COUNT(*)
+        FROM subscriptions
+        WHERE status != '구독해지'
+    """)
+    active_subscription_count = cur.fetchone()[0]
+
+    cur.execute("""
+        SELECT customers.id, customers.name, customers.phone, subscriptions.plan, subscriptions.status, subscriptions.next_shipping_date
         FROM customers
         LEFT JOIN subscriptions
         ON customers.id = subscriptions.customer_id
-    """
+        ORDER BY customers.id DESC
+        LIMIT 5
+    """)
+    recent_customers = cur.fetchall()
 
-    if search:
-        cur.execute(base_query + """
-            WHERE customers.name LIKE ?
-               OR customers.phone LIKE ?
-               OR customers.address LIKE ?
-               OR subscriptions.plan LIKE ?
-            ORDER BY customers.id DESC
-        """, (f"%{search}%", f"%{search}%", f"%{search}%", f"%{search}%"))
-    else:
-        cur.execute(base_query + """
-            ORDER BY customers.id DESC
-        """)
-
-    customers = cur.fetchall()
     conn.close()
-
-    total_count = len(customers)
-    new_count = len([c for c in customers if c[7] == "결제완료"])
-    today = date.today().strftime("%Y-%m-%d")
-    today_count = len([c for c in customers if c[5] == today])
-
-    shipping_ready_count = len([c for c in customers if c[7] == "결제완료"])
-    shipping_progress_count = len([c for c in customers if c[7] == "배송준비"])
-    waiting_count = len([c for c in customers if c[7] == "배송대기"])
 
     return render_template(
         "admin/dashboard.html",
-        customers=customers,
-        total_count=total_count,
-        new_count=new_count,
-        today_count=today_count,
-        search=search,
+        monthly_shipping_count=monthly_shipping_count,
+        today_shipping_count=today_shipping_count,
+        tomorrow_shipping_count=tomorrow_shipping_count,
+        deposit_waiting_count=deposit_waiting_count,
         shipping_ready_count=shipping_ready_count,
-        shipping_progress_count=shipping_progress_count,
-        waiting_count=waiting_count
+        active_subscription_count=active_subscription_count,
+        recent_customers=recent_customers
     )
 
 @admin_bp.route("/customer/<int:customer_id>")
