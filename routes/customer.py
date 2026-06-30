@@ -19,7 +19,7 @@ def subscribe():
         name = request.form["name"]
         phone = request.form["phone"]
         address = request.form["address"]
-        detail_address = request.form["detail_address"]
+        detail_address = request.form.get("detail_address", "")
         plan = request.form["plan"]
         start_date = request.form["start_date"]
         memo = request.form.get("memo", "")
@@ -45,9 +45,11 @@ def subscribe():
 def payment_complete():
     name = request.form["name"]
     phone = request.form["phone"]
+
     address = request.form["address"]
     detail_address = request.form.get("detail_address", "")
-    address = address + " " + detail_address
+    full_address = address + " " + detail_address
+
     plan = request.form["plan"]
     start_date = request.form["start_date"]
     memo = request.form.get("memo", "")
@@ -63,14 +65,16 @@ def payment_complete():
         INSERT INTO customers
         (name, phone, address, created_at)
         VALUES (?, ?, ?, ?)
-    """, (name, phone, address, today))
+        RETURNING id
+    """, (name, phone, full_address, today))
 
-    customer_id = cur.lastrowid
+    customer_id = cur.fetchone()[0]
 
     cur.execute("""
         INSERT INTO subscriptions
         (customer_id, plan, start_date, memo, status, remaining_count, next_shipping_date, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        RETURNING id
     """, (
         customer_id,
         plan,
@@ -82,7 +86,7 @@ def payment_complete():
         today
     ))
 
-    subscription_id = cur.lastrowid
+    subscription_id = cur.fetchone()[0]
 
     cur.execute("""
         INSERT INTO payments
@@ -93,15 +97,16 @@ def payment_complete():
         subscription_id,
         amount,
         "입금대기",
-today,
-payment_method,
-today
+        today,
+        payment_method,
+        today
     ))
 
     conn.commit()
     conn.close()
 
     return render_template("customer/complete.html", name=name)
+
 
 @customer_bp.route("/mypage", methods=["GET", "POST"])
 def mypage():

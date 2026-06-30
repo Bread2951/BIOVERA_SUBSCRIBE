@@ -1,79 +1,110 @@
 import os
 import sqlite3
 import psycopg2
-import dj_database_url
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 DB_NAME = "customers.db"
 
 
+class CursorWrapper:
+    def __init__(self, cursor):
+        self.cursor = cursor
+
+    def execute(self, query, params=None):
+        if DATABASE_URL:
+            query = query.replace("?", "%s")
+        if params is None:
+            return self.cursor.execute(query)
+        return self.cursor.execute(query, params)
+
+    def fetchone(self):
+        return self.cursor.fetchone()
+
+    def fetchall(self):
+        return self.cursor.fetchall()
+
+    @property
+    def lastrowid(self):
+        return getattr(self.cursor, "lastrowid", None)
+
+
+class ConnectionWrapper:
+    def __init__(self, conn):
+        self.conn = conn
+
+    def cursor(self):
+        return CursorWrapper(self.conn.cursor())
+
+    def commit(self):
+        self.conn.commit()
+
+    def close(self):
+        self.conn.close()
+
+
 def get_db():
     if DATABASE_URL:
-        return psycopg2.connect(DATABASE_URL)
-    else:
-        return sqlite3.connect(DB_NAME)
+        return ConnectionWrapper(psycopg2.connect(DATABASE_URL))
+    return ConnectionWrapper(sqlite3.connect(DB_NAME))
+
+
+def is_postgres():
+    return DATABASE_URL is not None
 
 
 def init_db():
     conn = get_db()
     cur = conn.cursor()
 
-    if DATABASE_URL:
-        id_type = "SERIAL PRIMARY KEY"
-        text_type = "TEXT"
-        integer_type = "INTEGER"
-    else:
-        id_type = "INTEGER PRIMARY KEY AUTOINCREMENT"
-        text_type = "TEXT"
-        integer_type = "INTEGER"
+    id_type = "SERIAL PRIMARY KEY" if DATABASE_URL else "INTEGER PRIMARY KEY AUTOINCREMENT"
 
     cur.execute(f"""
     CREATE TABLE IF NOT EXISTS customers (
         id {id_type},
-        name {text_type} NOT NULL,
-        phone {text_type},
-        address {text_type},
-        created_at {text_type}
+        name TEXT NOT NULL,
+        phone TEXT,
+        address TEXT,
+        created_at TEXT
     )
     """)
 
     cur.execute(f"""
     CREATE TABLE IF NOT EXISTS subscriptions (
         id {id_type},
-        customer_id {integer_type},
-        plan {text_type},
-        start_date {text_type},
-        memo {text_type},
-        status {text_type},
-        remaining_count {integer_type} DEFAULT 12,
-        next_shipping_date {text_type},
-        created_at {text_type}
+        customer_id INTEGER,
+        plan TEXT,
+        start_date TEXT,
+        memo TEXT,
+        status TEXT,
+        remaining_count INTEGER DEFAULT 12,
+        next_shipping_date TEXT,
+        created_at TEXT
     )
     """)
 
     cur.execute(f"""
     CREATE TABLE IF NOT EXISTS shipments (
         id {id_type},
-        customer_id {integer_type},
-        subscription_id {integer_type},
-        shipping_date {text_type},
-        courier {text_type},
-        tracking_number {text_type},
-        status {text_type},
-        created_at {text_type}
+        customer_id INTEGER,
+        subscription_id INTEGER,
+        shipping_date TEXT,
+        courier TEXT,
+        tracking_number TEXT,
+        status TEXT,
+        created_at TEXT
     )
     """)
 
     cur.execute(f"""
     CREATE TABLE IF NOT EXISTS payments (
         id {id_type},
-        customer_id {integer_type},
-        subscription_id {integer_type},
-        amount {integer_type},
-        payment_status {text_type},
-        payment_date {text_type},
-        payment_method {text_type},
-        created_at {text_type}
+        customer_id INTEGER,
+        subscription_id INTEGER,
+        amount INTEGER,
+        payment_status TEXT,
+        payment_date TEXT,
+        payment_method TEXT,
+        created_at TEXT
     )
     """)
 
