@@ -257,7 +257,7 @@ def shipment_list():
         FROM customers
         LEFT JOIN subscriptions
         ON customers.id = subscriptions.customer_id
-        WHERE subscriptions.status IN ('결제완료', '배송준비')
+        WHERE subscriptions.status IN ('입금대기','결제완료', '배송준비')
         ORDER BY subscriptions.next_shipping_date ASC
     """)
 
@@ -331,6 +331,32 @@ def shipment_complete(subscription_id):
         next_shipping_date = ?
     WHERE id = ?
 """, (new_remaining_count, next_shipping_date, subscription_id))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/admin/shipments")
+
+@admin_bp.route("/payment-confirm/<int:subscription_id>")
+def payment_confirm(subscription_id):
+
+    if not session.get("logged_in"):
+        return redirect("/login")
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE subscriptions
+        SET status='결제완료'
+        WHERE id=?
+    """,(subscription_id,))
+
+    cur.execute("""
+        UPDATE payments
+        SET payment_status='결제완료'
+        WHERE subscription_id=?
+    """,(subscription_id,))
 
     conn.commit()
     conn.close()

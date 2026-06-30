@@ -52,6 +52,7 @@ def payment_complete():
     start_date = request.form["start_date"]
     memo = request.form.get("memo", "")
     amount = request.form["amount"]
+    payment_method = request.form.get("payment_method", "무통장입금")
 
     today = date.today().strftime("%Y-%m-%d")
 
@@ -75,7 +76,7 @@ def payment_complete():
         plan,
         start_date,
         memo,
-        "결제완료",
+        "입금대기",
         12,
         start_date,
         today
@@ -91,10 +92,10 @@ def payment_complete():
         customer_id,
         subscription_id,
         amount,
-        "결제완료",
-        today,
-        "테스트결제",
-        today
+        "입금대기",
+today,
+payment_method,
+today
     ))
 
     conn.commit()

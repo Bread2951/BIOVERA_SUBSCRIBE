@@ -145,16 +145,38 @@ body {
                             <td>{{ s[5] }}</td>
                             <td>{{ s[9] }}회</td>
                             <td>
-                                {% if s[8] == "결제완료" %}
-                                    <span class="badge bg-primary">결제완료</span>
-                                {% elif s[8] == "배송준비" %}
-                                    <span class="badge bg-warning text-dark">배송준비</span>
-                                {% else %}
-                                    <span class="badge badge-main">{{ s[8] }}</span>
-                                {% endif %}
-                            </td>
+
+    {% if s[8] == "입금대기" %}
+
+        <span class="badge bg-danger">입금대기</span>
+
+    {% elif s[8] == "결제완료" %}
+
+        <span class="badge bg-primary">결제완료</span>
+
+    {% elif s[8] == "배송준비" %}
+
+        <span class="badge bg-warning text-dark">배송준비</span>
+
+    {% else %}
+
+        <span class="badge badge-main">{{ s[8] }}</span>
+
+    {% endif %}
+
+</td>
                             <td>
-                                {% if s[8] == "결제완료" %}
+                                {% if s[8] == "입금대기" %}
+
+<a href="/payment-confirm/{{ s[4] }}"
+class="btn btn-sm btn-success"
+onclick="return confirm('입금확인 처리할까요?')">
+
+입금확인
+
+</a>
+
+{% elif s[8] == "결제완료" %}
                                     <a href="/shipment-ready/{{ s[4] }}"
                                        class="btn btn-sm btn-main">
                                         배송준비 처리
