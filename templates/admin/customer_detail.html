@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>고객 상세</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+:root {
+    --main-color: #1f6f8b;
+    --main-dark: #15566d;
+    --bg-color: #f3f8fa;
+}
+
+body {
+    background: var(--bg-color);
+}
+
+.detail-wrap {
+    max-width: 1100px;
+    margin: 32px auto;
+}
+
+.card {
+    border: 0;
+    border-radius: 18px;
+    box-shadow: 0 8px 22px rgba(31,111,139,0.08);
+}
+
+.badge-main {
+    background: var(--main-color);
+}
+
+.btn-main {
+    background: var(--main-color);
+    color: white;
+    border: none;
+}
+
+.btn-main:hover {
+    background: var(--main-dark);
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="detail-wrap">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">{{ customer[1] }} 고객 상세</h2>
+            <p class="text-muted mb-0">고객 정보, 구독, 결제, 배송 내역을 확인합니다.</p>
+        </div>
+
+        <div>
+            <a href="/edit/{{ customer[0] }}" class="btn btn-main">수정</a>
+            <a href="/admin" class="btn btn-outline-secondary">목록으로</a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">고객 정보</h5>
+                    <p><strong>이름:</strong> {{ customer[1] }}</p>
+                    <p><strong>연락처:</strong> {{ customer[2] }}</p>
+                    <p><strong>주소:</strong> {{ customer[3] }}</p>
+                    <p><strong>등록일:</strong> {{ customer[4] }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">구독 정보</h5>
+                    <p><strong>상품:</strong> {{ customer[6] }}</p>
+                    <p><strong>시작일:</strong> {{ customer[7] }}</p>
+                    <p><strong>상태:</strong> <span class="badge badge-main">{{ customer[9] }}</span></p>
+                    <p><strong>남은 횟수:</strong> {{ customer[10] }}회</p>
+                    <p><strong>다음 배송일:</strong> {{ customer[11] }}</p>
+                    <p><strong>요청사항:</strong> {{ customer[8] }}</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body p-4">
+            <h5 class="fw-bold mb-3">결제 내역</h5>
+
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead style="background:#e6f3f7;">
+                        <tr>
+                            <th>결제일</th>
+                            <th>금액</th>
+                            <th>상태</th>
+                            <th>결제방식</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in payments %}
+                        <tr>
+                            <td>{{ p[2] }}</td>
+                            <td>{{ "{:,}".format(p[0]|int) }}원</td>
+                            <td>{{ p[1] }}</td>
+                            <td>{{ p[3] }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        {% if payments|length == 0 %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">결제 내역이 없습니다.</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-4">
+            <h5 class="fw-bold mb-3">배송 내역</h5>
+
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead style="background:#e6f3f7;">
+                        <tr>
+                            <th>배송일</th>
+                            <th>택배사</th>
+                            <th>송장번호</th>
+                            <th>상태</th>
+                            <th>등록일</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in shipments %}
+                        <tr>
+                            <td>{{ s[0] }}</td>
+<td>{{ s[1] }}</td>
+<td>
+    {{ s[2] }}
+
+    {% if s[1] == "CJ대한통운" %}
+        <a href="https://trace.cjlogistics.com/next/tracking.html?wblNo={{ s[2] }}"
+           target="_blank"
+           class="btn btn-sm btn-outline-primary ms-2">
+            배송조회
+        </a>
+    {% elif s[1] == "롯데택배" %}
+        <a href="https://www.lotteglogis.com/home/reservation/tracking/linkView?InvNo={{ s[2] }}"
+           target="_blank"
+           class="btn btn-sm btn-outline-primary ms-2">
+            배송조회
+        </a>
+    {% elif s[1] == "한진택배" %}
+        <a href="https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillSch.do?mCode=MN038&wblnumText2={{ s[2] }}"
+           target="_blank"
+           class="btn btn-sm btn-outline-primary ms-2">
+            배송조회
+        </a>
+    {% endif %}
+</td>
+<td>{{ s[3] }}</td>
+<td>{{ s[4] }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        {% if shipments|length == 0 %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">배송 내역이 없습니다.</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

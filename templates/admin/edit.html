@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>고객 수정</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+:root {
+    --main-color: #1f6f8b;
+    --main-dark: #15566d;
+    --bg-color: #f3f8fa;
+}
+
+body {
+    background: var(--bg-color);
+}
+
+.edit-wrap {
+    max-width: 720px;
+    margin: 40px auto;
+}
+
+.card {
+    border: 0;
+    border-radius: 18px;
+    box-shadow: 0 8px 22px rgba(31,111,139,0.08);
+}
+
+.btn-main {
+    background: var(--main-color);
+    color: white;
+    border: none;
+}
+
+.btn-main:hover {
+    background: var(--main-dark);
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="edit-wrap">
+    <div class="card">
+        <div class="card-body p-4">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="fw-bold mb-1">고객 정보 수정</h3>
+                    <p class="text-muted mb-0">고객의 구독 정보를 수정합니다.</p>
+                </div>
+                <a href="/admin" class="btn btn-outline-secondary">목록으로</a>
+            </div>
+
+            <form method="POST">
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">이름</label>
+                    <input type="text" name="name" class="form-control" value="{{ customer[1] }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">연락처</label>
+                    <input type="text" name="phone" class="form-control" value="{{ customer[2] }}">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">주소</label>
+                    <input type="text" name="address" class="form-control" value="{{ customer[3] }}">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">구독 상품</label>
+                    <select name="plan" class="form-select">
+                        <option value="500ml 15병 월구독" {% if customer[4] == "500ml 15병 월구독" %}selected{% endif %}>500ml 15병 월구독</option>
+                        <option value="500ml 30병 월구독" {% if customer[4] == "500ml 30병 월구독" %}selected{% endif %}>500ml 30병 월구독</option>
+                        <option value="1년 선결제 구독" {% if customer[4] == "1년 선결제 구독" %}selected{% endif %}>1년 선결제 구독</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">구독 시작일</label>
+                    <input type="date" name="start_date" class="form-control" value="{{ customer[5] }}">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">배송 요청사항</label>
+                    <textarea name="memo" class="form-control" rows="3">{{ customer[6] }}</textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">상태</label>
+                    <select name="status" class="form-select">
+                        <option value="신청완료" {% if customer[7] == "신청완료" %}selected{% endif %}>신청완료</option>
+                        <option value="결제대기" {% if customer[7] == "결제대기" %}selected{% endif %}>결제대기</option>
+                        <option value="결제완료" {% if customer[7] == "결제완료" %}selected{% endif %}>결제완료</option>
+                        <option value="배송준비" {% if customer[7] == "배송준비" %}selected{% endif %}>배송준비</option>
+                        <option value="배송완료" {% if customer[7] == "배송완료" %}selected{% endif %}>배송완료</option>
+                        <option value="구독해지" {% if customer[7] == "구독해지" %}selected{% endif %}>구독해지</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-main w-100 py-3 fw-bold">수정 저장</button>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

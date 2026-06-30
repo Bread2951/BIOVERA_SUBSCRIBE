@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>내 구독 조회</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+:root{
+    --main:#1f6f8b;
+    --bg:#f3f8fa;
+}
+
+body{
+    background:var(--bg);
+}
+
+.wrap{
+    max-width:450px;
+    margin:40px auto;
+}
+
+.card{
+    border:0;
+    border-radius:20px;
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+.btn-main{
+    background:var(--main);
+    color:#fff;
+}
+
+.btn-main:hover{
+    background:#15566d;
+    color:#fff;
+}
+
+.info-box{
+    background:#f7fafb;
+    border-radius:14px;
+    padding:15px;
+    margin-bottom:12px;
+}
+</style>
+
+</head>
+<body>
+
+<div class="wrap">
+
+<div class="card">
+<div class="card-body p-4">
+
+<h3 class="fw-bold mb-3">내 구독 조회</h3>
+
+<p class="text-muted mb-4">
+휴대폰 번호를 입력하면<br>
+현재 구독상태와 배송정보를 확인할 수 있습니다.
+</p>
+
+<form method="POST">
+
+<div class="mb-3">
+<label>휴대폰번호</label>
+<input
+type="text"
+name="phone"
+class="form-control form-control-lg"
+placeholder="01012345678"
+required>
+</div>
+
+<button class="btn btn-main w-100">
+조회하기
+</button>
+
+</form>
+
+</div>
+</div>
+
+{% if customer %}
+
+<div class="card mt-4">
+<div class="card-body">
+
+<h5 class="fw-bold mb-3">
+{{ customer[1] }}님의 구독정보
+</h5>
+
+<div class="info-box">
+<strong>상품</strong><br>
+{{ customer[6] }}
+</div>
+
+<div class="info-box">
+<strong>현재상태</strong><br>
+{{ customer[9] }}
+</div>
+
+<div class="info-box">
+<strong>남은배송</strong><br>
+{{ customer[10] }}회
+</div>
+
+<div class="info-box">
+<strong>다음배송일</strong><br>
+{{ customer[11] }}
+</div>
+
+</div>
+</div>
+
+{% endif %}
+
+</div>
+
+</body>
+</html>

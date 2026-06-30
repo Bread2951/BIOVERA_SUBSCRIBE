@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>배송관리</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+:root {
+    --main-color: #1f6f8b;
+    --main-dark: #15566d;
+    --bg-color: #f3f8fa;
+}
+
+body {
+    background: var(--bg-color);
+}
+
+.sidebar {
+    width: 240px;
+    min-height: 100vh;
+    background: var(--main-color);
+    color: white;
+    position: fixed;
+    left: 0;
+    top: 0;
+    padding: 24px 18px;
+}
+
+.sidebar h3 {
+    font-weight: 800;
+    margin-bottom: 32px;
+}
+
+.sidebar a {
+    display: block;
+    color: white;
+    text-decoration: none;
+    padding: 12px 14px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+    background: rgba(255,255,255,0.18);
+}
+
+.main {
+    margin-left: 240px;
+    padding: 28px;
+}
+
+.card {
+    border: 0;
+    border-radius: 18px;
+    box-shadow: 0 8px 22px rgba(31,111,139,0.08);
+}
+
+.btn-main {
+    background: var(--main-color);
+    color: white;
+    border: none;
+}
+
+.btn-main:hover {
+    background: var(--main-dark);
+    color: white;
+}
+
+.badge-main {
+    background: var(--main-color);
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        position: relative;
+        width: 100%;
+        min-height: auto;
+    }
+
+    .main {
+        margin-left: 0;
+        padding: 18px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h3>BIOVERA</h3>
+    <a href="/admin">📊 대시보드</a>
+    <a href="/admin">👥 고객관리</a>
+    <a href="/admin/shipments" class="active">🚚 배송관리</a>
+    <a href="#">💳 결제관리</a>
+    <a href="#">📦 상품관리</a>
+    <a href="#">⚙ 설정</a>
+</div>
+
+<div class="main">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">배송관리</h2>
+            <p class="text-muted mb-0">결제완료 및 배송준비 상태의 고객을 관리합니다.</p>
+        </div>
+        <a href="/admin" class="btn btn-outline-secondary">대시보드로</a>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-4">
+
+            <h4 class="fw-bold mb-3">배송 대상 목록</h4>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead style="background:#e6f3f7;">
+                        <tr>
+                            <th>다음 배송일</th>
+                            <th>고객명</th>
+                            <th>연락처</th>
+                            <th>주소</th>
+                            <th>상품</th>
+                            <th>남은횟수</th>
+                            <th>상태</th>
+                            <th>관리</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for s in shipments %}
+                        <tr>
+                            <td>{{ s[10] }}</td>
+                            <td class="fw-bold">
+                                <a href="/customer/{{ s[0] }}" style="color:#1f6f8b; text-decoration:none;">
+                                    {{ s[1] }}
+                                </a>
+                            </td>
+                            <td>{{ s[2] }}</td>
+                            <td>{{ s[3] }}</td>
+                            <td>{{ s[5] }}</td>
+                            <td>{{ s[9] }}회</td>
+                            <td>
+                                {% if s[8] == "결제완료" %}
+                                    <span class="badge bg-primary">결제완료</span>
+                                {% elif s[8] == "배송준비" %}
+                                    <span class="badge bg-warning text-dark">배송준비</span>
+                                {% else %}
+                                    <span class="badge badge-main">{{ s[8] }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if s[8] == "결제완료" %}
+                                    <a href="/shipment-ready/{{ s[4] }}"
+                                       class="btn btn-sm btn-main">
+                                        배송준비 처리
+                                    </a>
+                                {% elif s[8] == "배송준비" %}
+    <form method="POST" action="/shipment-complete/{{ s[4] }}" class="d-flex gap-2">
+    <select name="courier" class="form-select form-select-sm" style="max-width:120px;" required>
+        <option value="CJ대한통운">CJ대한통운</option>
+        <option value="롯데택배">롯데택배</option>
+        <option value="한진택배">한진택배</option>
+        <option value="우체국택배">우체국택배</option>
+        <option value="로젠택배">로젠택배</option>
+    </select>
+
+    <input type="text"
+           name="tracking_number"
+           class="form-control form-control-sm"
+           placeholder="송장번호"
+           required>
+
+    <button type="submit"
+            class="btn btn-sm btn-success"
+            onclick="return confirm('배송완료 처리할까요?')">
+        배송완료
+    </button>
+</form>
+{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+
+                        {% if shipments|length == 0 %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-5">
+                                현재 배송 대상 고객이 없습니다.
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

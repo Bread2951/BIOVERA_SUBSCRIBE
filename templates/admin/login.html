@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>비오베라 관리자</title>
+
+<style>
+
+body{
+    margin:0;
+    background:#edf2ec;
+    font-family:Arial;
+}
+
+.login-box{
+
+    width:360px;
+
+    margin:120px auto;
+
+    background:white;
+
+    padding:40px;
+
+    border-radius:15px;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.15);
+
+}
+
+h1{
+
+    text-align:center;
+
+    color:#2f6b3f;
+
+}
+
+input{
+
+    width:100%;
+
+    padding:14px;
+
+    margin-bottom:15px;
+
+    border-radius:8px;
+
+    border:1px solid #ccc;
+
+    box-sizing:border-box;
+
+    font-size:16px;
+
+}
+
+button{
+
+    width:100%;
+
+    padding:15px;
+
+    border:none;
+
+    background:#2f6b3f;
+
+    color:white;
+
+    border-radius:8px;
+
+    font-size:17px;
+
+    cursor:pointer;
+
+}
+
+button:hover{
+
+    background:#255631;
+
+}
+
+.error{
+
+    color:red;
+
+    text-align:center;
+
+    margin-bottom:15px;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="login-box">
+
+<h1>BIOVERA</h1>
+
+{% if error %}
+<div class="error">{{ error }}</div>
+{% endif %}
+
+<form method="POST">
+
+<input
+type="text"
+name="username"
+placeholder="아이디">
+
+<input
+type="password"
+name="password"
+placeholder="비밀번호">
+
+<button>
+
+로그인
+
+</button>
+
+</form>
+
+</div>
+
+</body>
+
+</html>
