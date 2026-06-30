@@ -6,6 +6,23 @@ import calendar
 from database import get_db
 
 admin_bp = Blueprint("admin", __name__)
+def update_due_shipments():
+    today_text = date.today().strftime("%Y-%m-%d")
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE subscriptions
+        SET status = '결제완료'
+        WHERE status = '배송대기'
+          AND next_shipping_date <= ?
+          AND remaining_count > 0
+    """, (today_text,))
+
+    conn.commit()
+    conn.close()
+
 def add_one_month(date_text):
     current_date = datetime.strptime(date_text, "%Y-%m-%d").date()
 
@@ -48,6 +65,8 @@ def logout():
 def admin_dashboard():
     if not session.get("logged_in"):
         return redirect("/login")
+
+    update_due_shipments()
 
     conn = get_db()
     cur = conn.cursor()
@@ -260,6 +279,8 @@ def shipment_list():
         return redirect("/login")
         tracking_number = request.form["tracking_number"]
 
+    update_due_shipments()
+
     conn = get_db()
     cur = conn.cursor()
 
@@ -425,66 +446,6 @@ def export_shipments():
     response.headers["Content-Disposition"] = "attachment; filename=shipments.csv"
 
     return response
-
-@admin_bp.route("/admin/customers")
-def customer_list():
-    if not session.get("logged_in"):
-        return redirect("/login")
-
-    conn = get_db()
-    cur = conn.cursor()
-
-    search = request.args.get("search", "")
-    status = request.args.get("status", "")
-
-    base_query = """
-        SELECT
-            customers.id,
-            customers.name,
-            customers.phone,
-            customers.address,
-            subscriptions.plan,
-            subscriptions.status,
-            subscriptions.remaining_count,
-            subscriptions.next_shipping_date
-        FROM customers
-        LEFT JOIN subscriptions
-        ON customers.id = subscriptions.customer_id
-    """
-
-    conditions = []
-    params = []
-
-    if search:
-        conditions.append("""
-            (customers.name LIKE ?
-             OR customers.phone LIKE ?
-             OR customers.address LIKE ?
-             OR subscriptions.plan LIKE ?)
-        """)
-        params.extend([f"%{search}%", f"%{search}%", f"%{search}%", f"%{search}%"])
-
-    if status:
-        conditions.append("subscriptions.status = ?")
-        params.append(status)
-
-    where_sql = ""
-    if conditions:
-        where_sql = " WHERE " + " AND ".join(conditions)
-
-    cur.execute(base_query + where_sql + """
-        ORDER BY customers.id DESC
-    """, params)
-
-    customers = cur.fetchall()
-    conn.close()
-
-    return render_template(
-        "admin/customers.html",
-        customers=customers,
-        search=search,
-        status=status
-    )
 
 @admin_bp.route("/admin/payments")
 def payment_list():
