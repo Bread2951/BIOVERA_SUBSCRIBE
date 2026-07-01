@@ -197,3 +197,113 @@ def payapp_request():
         return redirect(payurl)
 
     return f"결제 요청 실패: {error_message}<br><br>응답내용: {result_text}", 400
+
+@customer_bp.route("/payapp/feedback", methods=["POST"])
+def payapp_feedback():
+    data = request.form
+
+    linkval = data.get("linkval", "")
+    pay_state = data.get("pay_state", "")
+    price = data.get("price", "")
+    memo_data = data.get("memo", "")
+
+    if linkval != PAYAPP_VALUE:
+        return "invalid linkval", 400
+
+    # 결제완료가 아닌 경우 저장하지 않음
+    if pay_state not in ["4", "결제완료", "paid", "success"]:
+        return "not paid", 200
+
+    parts = memo_data.split("|")
+
+    if len(parts) < 8:
+        return "invalid memo", 400
+
+    name = parts[0]
+    phone = parts[1]
+    address = parts[2]
+    detail_address = parts[3]
+    plan = parts[4]
+    start_date = parts[5]
+    memo = parts[6]
+    amount = parts[7]
+
+    full_address = address + " " + detail_address
+    today = date.today().strftime("%Y-%m-%d")
+
+    # 금액 검증
+    if str(price) != str(amount):
+        return "price mismatch", 400
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    # 중복 저장 방지
+    cur.execute("""
+        SELECT payments.id
+        FROM payments
+        LEFT JOIN customers
+        ON payments.customer_id = customers.id
+        WHERE customers.phone = ?
+          AND payments.amount = ?
+          AND payments.payment_status = '결제완료'
+          AND payments.payment_method = '페이앱카드'
+        ORDER BY payments.id DESC
+        LIMIT 1
+    """, (phone, amount))
+
+    existing = cur.fetchone()
+
+    if existing:
+        conn.close()
+        return "already saved", 200
+
+    cur.execute("""
+        INSERT INTO customers
+        (name, phone, address, created_at)
+        VALUES (?, ?, ?, ?)
+        RETURNING id
+    """, (name, phone, full_address, today))
+
+    customer_id = cur.fetchone()[0]
+
+    cur.execute("""
+        INSERT INTO subscriptions
+        (customer_id, plan, start_date, memo, status, remaining_count, next_shipping_date, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        RETURNING id
+    """, (
+        customer_id,
+        plan,
+        start_date,
+        memo,
+        "결제완료",
+        12,
+        start_date,
+        today
+    ))
+
+    subscription_id = cur.fetchone()[0]
+
+    cur.execute("""
+        INSERT INTO payments
+        (customer_id, subscription_id, amount, payment_status, payment_date, payment_method, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (
+        customer_id,
+        subscription_id,
+        amount,
+        "결제완료",
+        today,
+        "페이앱카드",
+        today
+    ))
+
+    conn.commit()
+    conn.close()
+
+    return "success", 200
+
+@customer_bp.route("/complete")
+def payapp_complete():
+    return render_template("customer/complete.html", name="고객")
