@@ -163,10 +163,7 @@ def payapp_request():
 
     order_name = f"비오베라 {plan}"
 
-    # 결제 성공 후 돌아올 주소
     return_url = "https://biovera-subscribe.onrender.com/complete"
-
-    # 결제 결과를 서버가 받을 주소
     feedback_url = "https://biovera-subscribe.onrender.com/payapp/feedback"
 
     payload = {
@@ -187,13 +184,13 @@ def payapp_request():
     )
 
     result_text = response.text
-result = parse_qs(result_text)
+    result = parse_qs(result_text)
 
-state = result.get("state", ["0"])[0]
-payurl = result.get("payurl", [""])[0]
-error_message = result.get("errorMessage", [""])[0]
+    state = result.get("state", ["0"])[0]
+    payurl = result.get("payurl", [""])[0]
+    error_message = result.get("errorMessage", [""])[0]
 
-if state == "1" and payurl:
-    return redirect(payurl)
+    if state == "1" and payurl:
+        return redirect(payurl)
 
-return f"결제 요청 실패: {error_message}<br><br>응답내용: {result_text}", 400
+    return f"결제 요청 실패: {error_message}<br><br>응답내용: {result_text}", 400
