@@ -9,6 +9,7 @@ from database import get_db
 customer_bp = Blueprint("customer", __name__)
 PAYAPP_KEY = os.environ.get("PAYAPP_KEY")
 PAYAPP_VALUE = os.environ.get("PAYAPP_VALUE")
+PAYAPP_USERID = os.environ.get("PAYAPP_USERID")
 
 def get_amount(plan):
     if plan == "500ml 15병 월구독":
@@ -168,14 +169,16 @@ def payapp_request():
 
     payload = {
         "cmd": "payrequest",
-        "userid": PAYAPP_KEY,
-        "goodname": order_name,
-        "price": amount,
-        "recvphone": phone,
-        "memo": f"{name}|{phone}|{address}|{detail_address}|{plan}|{start_date}|{memo}|{amount}",
-        "feedbackurl": feedback_url,
-        "returnurl": return_url,
-        "checkretry": "y",
+    "userid": PAYAPP_USERID,
+    "linkkey": PAYAPP_KEY,
+    "linkval": PAYAPP_VALUE,
+    "goodname": order_name,
+    "price": amount,
+    "recvphone": phone,
+    "memo": f"{name}|{phone}|{address}|{detail_address}|{plan}|{start_date}|{memo}|{amount}",
+    "feedbackurl": feedback_url,
+    "returnurl": return_url,
+    "checkretry": "y",
     }
 
     response = requests.post(
