@@ -3,6 +3,7 @@ from datetime import date
 import os
 import requests
 from database import get_db
+from urllib.parse import parse_qs
 
 customer_bp = Blueprint("customer", __name__)
 PAYAPP_KEY = os.environ.get("PAYAPP_KEY")
@@ -184,9 +185,14 @@ def payapp_request():
         data=payload
     )
 
-    result = response.json()
+    result_text = response.text
+result = parse_qs(result_text)
 
-    if result.get("state") == "1":
-        return redirect(result.get("payurl"))
+state = result.get("state", ["0"])[0]
+payurl = result.get("payurl", [""])[0]
+error_message = result.get("errorMessage", [""])[0]
 
-    return f"결제 요청 실패: {result}", 400
+if state == "1" and payurl:
+    return redirect(payurl)
+
+return f"결제 요청 실패: {error_message}<br><br>응답내용: {result_text}", 400
