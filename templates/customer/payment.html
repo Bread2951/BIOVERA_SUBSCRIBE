@@ -134,12 +134,26 @@ body {
     <h5 class="fw-bold mb-3">결제수단 선택</h5>
 
     <div class="p-3 rounded mb-3" style="background:#f3f8fa;">
-        <div class="fw-bold mb-1">💳 카드결제</div>
-        <div class="small text-muted">토스페이먼츠 연동 후 이용 가능합니다.</div>
-        <button type="button" class="btn btn-outline-secondary w-100 mt-3" disabled>
-            카드결제 준비중
+    <div class="fw-bold mb-1">💳 카드결제</div>
+    <div class="small text-muted mb-3">카드결제로 바로 신청을 완료합니다.</div>
+
+    <form method="POST" action="/payapp/request">
+
+        <input type="hidden" name="name" value="{{ name }}">
+        <input type="hidden" name="phone" value="{{ phone }}">
+        <input type="hidden" name="address" value="{{ address }}">
+        <input type="hidden" name="detail_address" value="{{ detail_address }}">
+        <input type="hidden" name="plan" value="{{ plan }}">
+        <input type="hidden" name="start_date" value="{{ start_date }}">
+        <input type="hidden" name="memo" value="{{ memo }}">
+        <input type="hidden" name="amount" value="{{ amount }}">
+
+        <button type="submit" class="btn btn-main w-100">
+            카드결제하기
         </button>
-    </div>
+
+    </form>
+</div>
 
     <div class="p-3 rounded mb-3" style="background:#e6f3f7;">
         <div class="fw-bold mb-2">🏦 무통장입금</div>
@@ -180,9 +194,8 @@ body {
 </div>
 
             <p class="notice">
-                현재는 테스트 결제 단계입니다.<br>
-                이후 토스페이먼츠 정기결제로 연결됩니다.
-            </p>
+카드, 계좌이체, 간편결제로 안전하게 결제하실 수 있습니다.
+</p>
 
         </div>
     </div>

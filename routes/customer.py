@@ -1,9 +1,12 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, redirect
 from datetime import date
+import os
+import requests
 from database import get_db
 
 customer_bp = Blueprint("customer", __name__)
-
+PAYAPP_KEY = os.environ.get("PAYAPP_KEY")
+PAYAPP_VALUE = os.environ.get("PAYAPP_VALUE")
 
 def get_amount(plan):
     if plan == "500ml 15병 월구독":
@@ -144,3 +147,46 @@ def mypage():
         conn.close()
 
     return render_template("customer/mypage.html", customer=customer)
+
+@customer_bp.route("/payapp/request", methods=["POST"])
+def payapp_request():
+    name = request.form["name"]
+    phone = request.form["phone"]
+    address = request.form["address"]
+    detail_address = request.form.get("detail_address", "")
+    plan = request.form["plan"]
+    start_date = request.form["start_date"]
+    memo = request.form.get("memo", "")
+    amount = request.form["amount"]
+
+    order_name = f"비오베라 {plan}"
+
+    # 결제 성공 후 돌아올 주소
+    return_url = "https://biovera-subscribe.onrender.com/complete"
+
+    # 결제 결과를 서버가 받을 주소
+    feedback_url = "https://biovera-subscribe.onrender.com/payapp/feedback"
+
+    payload = {
+        "cmd": "payrequest",
+        "userid": PAYAPP_KEY,
+        "goodname": order_name,
+        "price": amount,
+        "recvphone": phone,
+        "memo": f"{name}|{phone}|{address}|{detail_address}|{plan}|{start_date}|{memo}|{amount}",
+        "feedbackurl": feedback_url,
+        "returnurl": return_url,
+        "checkretry": "y",
+    }
+
+    response = requests.post(
+        "https://api.payapp.kr/oapi/apiLoad.html",
+        data=payload
+    )
+
+    result = response.json()
+
+    if result.get("state") == "1":
+        return redirect(result.get("payurl"))
+
+    return f"결제 요청 실패: {result}", 400
