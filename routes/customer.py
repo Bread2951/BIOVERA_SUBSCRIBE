@@ -1,9 +1,10 @@
+from urllib.parse import parse_qs
 from flask import Blueprint, render_template, request, redirect
 from datetime import date
 import os
 import requests
 from database import get_db
-from urllib.parse import parse_qs
+
 
 customer_bp = Blueprint("customer", __name__)
 PAYAPP_KEY = os.environ.get("PAYAPP_KEY")
