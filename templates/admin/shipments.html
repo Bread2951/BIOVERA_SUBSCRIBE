@@ -204,6 +204,12 @@ onclick="return confirm('입금확인 처리할까요?')">
             onclick="return confirm('배송완료 처리할까요?')">
         배송완료
     </button>
+
+    <a href="/pickup-complete/{{ s[4] }}"
+   class="btn btn-sm btn-outline-success"
+   onclick="return confirm('직접수령 완료 처리할까요?')">
+    직접수령
+</a>
 </form>
 {% endif %}
                             </td>

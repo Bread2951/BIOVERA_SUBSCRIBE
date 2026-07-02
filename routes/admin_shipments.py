@@ -219,3 +219,52 @@ def export_shipments():
     response.headers["Content-Disposition"] = "attachment; filename=shipments.csv"
 
     return response
+
+@shipments_bp.route("/pickup-complete/<int:subscription_id>")
+def pickup_complete(subscription_id):
+    if not session.get("logged_in"):
+        return redirect("/login")
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT customer_id, next_shipping_date, remaining_count
+        FROM subscriptions
+        WHERE id = ?
+    """, (subscription_id,))
+    subscription = cur.fetchone()
+
+    if subscription:
+        customer_id = subscription[0]
+        shipping_date = subscription[1]
+        remaining_count = subscription[2] or 0
+
+        new_remaining_count = max(remaining_count - 1, 0)
+        next_shipping_date = add_one_month(shipping_date)
+
+        cur.execute("""
+            INSERT INTO shipments
+            (customer_id, subscription_id, shipping_date, courier, tracking_number, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, CURRENT_DATE)
+        """, (
+            customer_id,
+            subscription_id,
+            shipping_date,
+            "직접수령",
+            "",
+            "직접수령완료"
+        ))
+
+        cur.execute("""
+            UPDATE subscriptions
+            SET status = '배송대기',
+                remaining_count = ?,
+                next_shipping_date = ?
+            WHERE id = ?
+        """, (new_remaining_count, next_shipping_date, subscription_id))
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/admin/shipments")
