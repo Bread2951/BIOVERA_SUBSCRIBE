@@ -1,0 +1,94 @@
+@media (max-width: 768px) {
+    body {
+        background: #f3f8fa;
+    }
+
+    .sidebar {
+        position: sticky !important;
+        top: 0;
+        z-index: 1000;
+        width: 100% !important;
+        min-height: auto !important;
+        padding: 14px 12px !important;
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .sidebar h3 {
+        font-size: 18px;
+        margin: 0 10px 0 0 !important;
+        flex: 0 0 auto;
+    }
+
+    .sidebar a {
+        display: inline-block !important;
+        margin-bottom: 0 !important;
+        padding: 9px 12px !important;
+        font-size: 14px;
+        flex: 0 0 auto;
+    }
+
+    .main {
+        margin-left: 0 !important;
+        padding: 16px !important;
+    }
+
+    .main h2 {
+        font-size: 22px;
+    }
+
+    .main p {
+        font-size: 14px;
+    }
+
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 10px;
+    }
+
+    .card,
+    .table-card,
+    .dashboard-card {
+        border-radius: 16px !important;
+        margin-bottom: 14px;
+    }
+
+    .card-body {
+        padding: 16px !important;
+    }
+
+    .dashboard-card {
+        min-height: auto !important;
+    }
+
+    .card-number {
+        font-size: 28px !important;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    table {
+        font-size: 13px;
+        min-width: 760px;
+    }
+
+    .btn {
+        font-size: 14px;
+    }
+
+    .btn-sm {
+        padding: 6px 9px;
+    }
+
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+}
