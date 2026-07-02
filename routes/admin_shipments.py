@@ -268,3 +268,36 @@ def pickup_complete(subscription_id):
     conn.close()
 
     return redirect("/admin/shipments")
+
+@shipments_bp.route("/admin/mobile")
+def mobile_shipments():
+    if not session.get("logged_in"):
+        return redirect("/login")
+
+    update_due_shipments()
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT
+            customers.id,
+            customers.name,
+            customers.phone,
+            customers.address,
+            subscriptions.id,
+            subscriptions.plan,
+            subscriptions.status,
+            subscriptions.remaining_count,
+            subscriptions.next_shipping_date
+        FROM customers
+        LEFT JOIN subscriptions
+        ON customers.id = subscriptions.customer_id
+        WHERE subscriptions.status IN ('결제완료', '배송준비')
+        ORDER BY subscriptions.next_shipping_date ASC
+    """)
+
+    shipments = cur.fetchall()
+    conn.close()
+
+    return render_template("admin/mobile_shipments.html", shipments=shipments)
